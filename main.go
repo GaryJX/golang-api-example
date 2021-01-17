@@ -17,13 +17,25 @@
 // swagger:meta
 package main
 
+import (
+	"fmt"
+	"os"
+)
+
 // ! Swagger documentation @ https://goswagger.io/use/spec.html
 func main() {
+	port := os.Getenv("PORT")
+
+	fmt.Println("HELLO WORLD")
+	if port == "" {
+		port = "8080"
+	}
+
 	a := App{}
 	a.Initialize(
 		"postgres",
 		"postgres",
 		"postgres",
 	)
-	a.Run(":8080")
+	a.Run(":" + port)
 }
