@@ -9,6 +9,8 @@ import (
 	"os"
 	"strconv"
 	"testing"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 var a App
@@ -16,10 +18,9 @@ var a App
 
 func TestMain(m *testing.M) {
     a.Initialize(
-				"postgres",
-				"postgres",
-				"postgres",
-			)
+        os.Getenv("DB_USERNAME"),
+        os.Getenv("DB_PASSWORD"),
+        os.Getenv("DB_NAME_TEST"))
 
     ensureTableExists()
     code := m.Run()
@@ -181,6 +182,7 @@ func checkResponseCode(t *testing.T, expected, actual int) {
     }
 }
 
+// ! NOTE: This clears the products table, even if there is real data in there. Use a mock DB
 const tableCreationQuery = `CREATE TABLE IF NOT EXISTS products
 (
     id SERIAL,

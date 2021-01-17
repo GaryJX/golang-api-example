@@ -18,6 +18,13 @@ type App struct {
     DB     *sql.DB
 }
 
+// Product Response Payload
+// swagger:response productResponse
+type ProductResponse struct {
+    // in:body
+    Body Product
+}
+
 func (a *App) Initialize(user, password, dbname string) {
     connectionString :=
         fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", user, password, dbname)
@@ -34,7 +41,7 @@ func (a *App) Initialize(user, password, dbname string) {
 }
 
 func (a *App) Run(addr string) {
-    log.Fatal(http.ListenAndServe(":8010", a.Router))
+    log.Fatal(http.ListenAndServe(addr, a.Router))
 }
 
 func (a *App) getProduct(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +52,7 @@ func (a *App) getProduct(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    p := product{ID: id}
+    p := Product{ID: id}
     if err := p.getProduct(a.DB); err != nil {
         switch err {
         case sql.ErrNoRows:
@@ -93,7 +100,7 @@ func (a *App) getProducts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) createProduct(w http.ResponseWriter, r *http.Request) {
-    var p product
+    var p Product
     decoder := json.NewDecoder(r.Body)
     if err := decoder.Decode(&p); err != nil {
         respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -118,7 +125,7 @@ func (a *App) updateProduct(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    var p product
+    var p Product
     decoder := json.NewDecoder(r.Body)
     if err := decoder.Decode(&p); err != nil {
         respondWithError(w, http.StatusBadRequest, "Invalid resquest payload")
@@ -143,7 +150,7 @@ func (a *App) deleteProduct(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    p := product{ID: id}
+    p := Product{ID: id}
     if err := p.deleteProduct(a.DB); err != nil {
         respondWithError(w, http.StatusInternalServerError, err.Error())
         return
@@ -154,19 +161,16 @@ func (a *App) deleteProduct(w http.ResponseWriter, r *http.Request) {
 
 
 func (a *App) initializeRoutes() {
+    // swagger:operation GET /products products getProducts
+    // ---
+    // summary: Get all products.
+    // description: Returns all available products.
+    // responses:
+    //  "200":
+    //    "$ref": "#/responses/productResponse"
     a.Router.HandleFunc("/products", a.getProducts).Methods("GET")
     a.Router.HandleFunc("/product", a.createProduct).Methods("POST")
     a.Router.HandleFunc("/product/{id:[0-9]+}", a.getProduct).Methods("GET")
     a.Router.HandleFunc("/product/{id:[0-9]+}", a.updateProduct).Methods("PUT")
     a.Router.HandleFunc("/product/{id:[0-9]+}", a.deleteProduct).Methods("DELETE")
-}
-
-func main() {
-	a := App{}
-	a.Initialize(
-		"postgres",
-		"postgres",
-		"postgres",
-	)
-	a.Run(":8010")
 }
