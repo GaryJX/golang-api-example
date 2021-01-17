@@ -172,9 +172,6 @@ func (a *App) initializeRoutes() {
     fs := http.FileServer(http.Dir("./swaggerui"))
     a.Router.PathPrefix("/swaggerui").Handler(http.StripPrefix("/swaggerui/", fs));
 
-
-
-
     // swagger:operation GET /products products getProducts
     // ---
     // summary: Get all products.
