@@ -25,6 +25,13 @@ type ProductResponse struct {
     Body Product
 }
 
+// Products Response Payload
+// swagger:response productsResponse
+type ProductsResponse struct {
+    // in:body
+    Body []Product
+}
+
 func (a *App) Initialize(user, password, dbname string) {
     connectionString :=
         fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", user, password, dbname)
@@ -161,13 +168,20 @@ func (a *App) deleteProduct(w http.ResponseWriter, r *http.Request) {
 
 
 func (a *App) initializeRoutes() {
+
+    fs := http.FileServer(http.Dir("./swaggerui"))
+    a.Router.PathPrefix("/swaggerui").Handler(http.StripPrefix("/swaggerui/", fs));
+
+
+
+
     // swagger:operation GET /products products getProducts
     // ---
     // summary: Get all products.
     // description: Returns all available products.
     // responses:
-    //  "200":
-    //    "$ref": "#/responses/productResponse"
+    //  200:
+    //    $ref: "#/responses/productsResponse"
     a.Router.HandleFunc("/products", a.getProducts).Methods("GET")
     a.Router.HandleFunc("/product", a.createProduct).Methods("POST")
     a.Router.HandleFunc("/product/{id:[0-9]+}", a.getProduct).Methods("GET")

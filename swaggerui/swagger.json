@@ -1,0 +1,75 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "Example Description",
+    "title": "Golang Example API",
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",
+  "paths": {
+    "/products": {
+      "get": {
+        "description": "Returns all available products.",
+        "tags": [
+          "products"
+        ],
+        "summary": "Get all products.",
+        "operationId": "getProducts",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/productsResponse"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Product": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "price": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Price"
+        }
+      },
+      "x-go-package": "github.com/GaryJX/golang-api-example"
+    }
+  },
+  "responses": {
+    "productResponse": {
+      "description": "Product Response Payload",
+      "schema": {
+        "$ref": "#/definitions/Product"
+      }
+    },
+    "productsResponse": {
+      "description": "Products Response Payload",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/Product"
+        }
+      }
+    }
+  }
+}
