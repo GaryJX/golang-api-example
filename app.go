@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
 	"encoding/json"
 	"net/http"
@@ -33,6 +34,8 @@ type ProductsResponse struct {
 }
 
 func (a *App) Initialize(user, password, dbname string) {
+    fmt.Println("@ Database URL below")
+    fmt.Println(os.Getenv("DATABASE_URL"))
     connectionString :=
         fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", user, password, dbname)
 
