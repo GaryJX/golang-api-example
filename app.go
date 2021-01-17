@@ -47,6 +47,19 @@ func (a *App) Initialize(user, password, dbname string) {
         log.Fatal(err)
     }
 
+    // Initialize database tables if not exist already
+    const tableCreationQuery = `CREATE TABLE IF NOT EXISTS products
+    (
+        id SERIAL,
+        name TEXT NOT NULL,
+        price NUMERIC(10,2) NOT NULL DEFAULT 0.00,
+        CONSTRAINT products_pkey PRIMARY KEY (id)
+    )`
+
+    if _, err := a.DB.Exec(tableCreationQuery); err != nil {
+        log.Fatal(err)
+    }
+
     a.Router = mux.NewRouter()
 
     a.initializeRoutes()
