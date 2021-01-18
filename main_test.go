@@ -55,7 +55,7 @@ func TestCreateProduct(t *testing.T) {
 	clearTable()
 
 	var jsonStr = []byte(`{"name":"test product", "price": 11.22}`)
-	req, _ := http.NewRequest("POST", "/api/product", bytes.NewBuffer(jsonStr))
+	req, _ := http.NewRequest("POST", "/api/product/", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 
 	response := executeRequest(req)
