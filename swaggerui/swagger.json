@@ -35,6 +35,7 @@
   },
   "definitions": {
     "Product": {
+      "description": "Product Model",
       "type": "object",
       "properties": {
         "id": {

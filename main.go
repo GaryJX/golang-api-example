@@ -50,13 +50,6 @@ func (a *App) initializeDBTables() {
 }
 
 func (a *App) initializeRoutes() {
-	baseURL := "/api"
-
-	fs := http.FileServer(http.Dir("./swaggerui"))
-	a.Router.PathPrefix(baseURL).Handler(http.StripPrefix("/swaggerui/", fs))
-
-	// TODO: Move this to products.go
-
 	// swagger:operation GET /products products getProducts
 	// ---
 	// summary: Get all products.
@@ -64,11 +57,15 @@ func (a *App) initializeRoutes() {
 	// responses:
 	//  200:
 	//    $ref: "#/responses/productsResponse"
-	a.Router.HandleFunc("/products", a.getProducts).Methods("GET")
-	a.Router.HandleFunc("/product", a.createProduct).Methods("POST")
-	a.Router.HandleFunc("/product/{id:[0-9]+}", a.getProduct).Methods("GET")
-	a.Router.HandleFunc("/product/{id:[0-9]+}", a.updateProduct).Methods("PUT")
-	a.Router.HandleFunc("/product/{id:[0-9]+}", a.deleteProduct).Methods("DELETE")
+	a.Router.HandleFunc("/api/products", a.getProducts).Methods("GET")
+	a.Router.HandleFunc("/api/product", a.createProduct).Methods("POST")
+	a.Router.HandleFunc("/api/product/{id:[0-9]+}", a.getProduct).Methods("GET")
+	a.Router.HandleFunc("/api/product/{id:[0-9]+}", a.updateProduct).Methods("PUT")
+	a.Router.HandleFunc("/api/product/{id:[0-9]+}", a.deleteProduct).Methods("DELETE")
+
+
+	fs := http.FileServer(http.Dir("./swaggerui"))
+	a.Router.PathPrefix("/swaggerui").Handler(http.StripPrefix("/swaggerui/", fs))
 }
 
 // Initialize sets up the database connection and router
@@ -102,7 +99,7 @@ func main() {
 
 	// Default port in development
 	if port == "" {
-		port = "8080"
+		port = "8090"
 	}
 
 	a := App{}
