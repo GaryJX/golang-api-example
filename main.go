@@ -4,8 +4,7 @@
 //
 // Terms Of Service:
 //
-//     Schemes: http, https
-//     Host: localhost:8080
+//     BasePath: /api
 //     Version: 1.0.0
 //
 //     Consumes:
@@ -59,26 +58,79 @@ func (a *App) initializeRoutes() {
 	//    $ref: "#/responses/productsResponse"
 	a.Router.HandleFunc("/api/products", a.getProducts).Methods("GET")
 
-	// swagger:operation GET /products/{id:[0-9]+} products getProduct
+	// swagger:operation GET /product/{id} products getProduct
 	// ---
 	// summary: Get a product by id.
 	// description: Return a product provided by the id.
 	// parameters:
 	// - name: id
 	//   in: path
-	//   description: id of the account
+	//   description: Product ID
 	//   type: string
 	//   required: true
 	// responses:
 	//   "200":
-	//     "$ref": "#/responses/accountRes"
-	//   "400":
-	//     "$ref": "#/responses/badReq"
+	//     "$ref": "#/responses/productResponse"
 	//   "404":
-	//     "$ref": "#/responses/notFoundReq"
+	//     "$ref": "#/responses/notFoundResponse"
 	a.Router.HandleFunc("/api/product/{id:[0-9]+}", a.getProduct).Methods("GET")
-	a.Router.HandleFunc("/api/product", a.createProduct).Methods("POST")
+
+	// swagger:operation POST /product/ products createProduct
+	// ---
+	// summary: Creates a new product.
+	// description: Create a new product.
+	// parameters:
+	// - name: product
+	//   description: Product
+	//   in: body
+	//   required: true
+	//   schema:
+	//     "$ref": "#/definitions/Product"
+	// responses:
+	//   "200":
+	//     "$ref": "#/responses/productResponse"
+	//   "400":
+	//     "$ref": "#/responses/badRequestResponse"
+	a.Router.HandleFunc("/api/product/", a.createProduct).Methods("POST")
+
+	// swagger:operation PUT /product/{id} products updateProduct
+	// ---
+	// summary: Update a product by ID.
+	// description: Update a product by ID.
+	// parameters:
+	// - name: id
+	//   in: path
+	//   description: Product ID
+	//   type: string
+	//   required: true
+	// - name: product
+	//   description: Product
+	//   in: body
+	//   required: true
+	//   schema:
+	//     "$ref": "#/definitions/Product"
+	// responses:
+	//   "200":
+	//     "$ref": "#/responses/productResponse"
+	//   "400":
+	//     "$ref": "#/responses/badRequestResponse"
+	//   "404":
+	//     "$ref": "#/responses/notFoundResponse"
 	a.Router.HandleFunc("/api/product/{id:[0-9]+}", a.updateProduct).Methods("PUT")
+
+	// swagger:operation DELETE /product/{id} products deleteProduct
+	// ---
+	// summary: Delete a product by ID.
+	// description: Delete a product by ID.
+	// parameters:
+	// - name: id
+	//   in: path
+	//   description: Product ID
+	//   type: string
+	//   required: true
+	// responses:
+	//   "200":
+	//     "$ref": "#/responses/okResponse"
 	a.Router.HandleFunc("/api/product/{id:[0-9]+}", a.deleteProduct).Methods("DELETE")
 	
 	// Serve Swagger API Docs

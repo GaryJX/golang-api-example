@@ -99,7 +99,7 @@ func TestUpdateProduct(t *testing.T) {
 	json.Unmarshal(response.Body.Bytes(), &originalProduct)
 
 	var jsonStr = []byte(`{"name":"test product - updated name", "price": 11.22}`)
-	req, _ = http.NewRequest("PUT", "/product/1", bytes.NewBuffer(jsonStr))
+	req, _ = http.NewRequest("PUT", "/api/product/1", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 
 	response = executeRequest(req)

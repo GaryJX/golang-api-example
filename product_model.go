@@ -30,10 +30,8 @@ func (p *Product) deleteProduct(db *sql.DB) error {
 	return err
 }
 
-func getProducts(db *sql.DB, limit, offset int) ([]Product, error) {
-	rows, err := db.Query(
-		"SELECT id, name,  price FROM products LIMIT $1 OFFSET $2",
-		limit, offset)
+func getProducts(db *sql.DB) ([]Product, error) {
+	rows, err := db.Query("SELECT id, name,  price FROM products")
 
 	if err != nil {
 		return nil, err

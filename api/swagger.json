@@ -5,18 +5,129 @@
   "produces": [
     "application/json"
   ],
-  "schemes": [
-    "http",
-    "https"
-  ],
   "swagger": "2.0",
   "info": {
     "description": "Example Description",
     "title": "Golang Example API",
     "version": "1.0.0"
   },
-  "host": "localhost:8080",
+  "basePath": "/api",
   "paths": {
+    "/product/": {
+      "post": {
+        "description": "Create a new product.",
+        "tags": [
+          "products"
+        ],
+        "summary": "Creates a new product.",
+        "operationId": "createProduct",
+        "parameters": [
+          {
+            "description": "Product",
+            "name": "product",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Product"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/productResponse"
+          },
+          "400": {
+            "$ref": "#/responses/badRequestResponse"
+          }
+        }
+      }
+    },
+    "/product/{id}": {
+      "get": {
+        "description": "Return a product provided by the id.",
+        "tags": [
+          "products"
+        ],
+        "summary": "Get a product by id.",
+        "operationId": "getProduct",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Product ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/productResponse"
+          },
+          "404": {
+            "$ref": "#/responses/notFoundResponse"
+          }
+        }
+      },
+      "put": {
+        "description": "Update a product by ID.",
+        "tags": [
+          "products"
+        ],
+        "summary": "Update a product by ID.",
+        "operationId": "updateProduct",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Product ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Product",
+            "name": "product",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Product"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/productResponse"
+          },
+          "400": {
+            "$ref": "#/responses/badRequestResponse"
+          },
+          "404": {
+            "$ref": "#/responses/notFoundResponse"
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete a product by ID.",
+        "tags": [
+          "products"
+        ],
+        "summary": "Delete a product by ID.",
+        "operationId": "deleteProduct",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Product ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/okResponse"
+          }
+        }
+      }
+    },
     "/products": {
       "get": {
         "description": "Returns all available products.",
@@ -57,6 +168,48 @@
     }
   },
   "responses": {
+    "badRequestResponse": {
+      "description": "Error Bad Request",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "description": "HTTP status code 400 -  Bad Request",
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "Code"
+          }
+        }
+      }
+    },
+    "notFoundResponse": {
+      "description": "Error Not Found",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "description": "HTTP status code 404 - Not Found",
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "Code"
+          }
+        }
+      }
+    },
+    "okResponse": {
+      "description": "Status OK",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "description": "HTTP status code 200 - OK",
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "Code"
+          }
+        }
+      }
+    },
     "productResponse": {
       "description": "Product Response Payload",
       "schema": {

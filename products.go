@@ -48,17 +48,7 @@ func (a *App) getProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) getProducts(w http.ResponseWriter, r *http.Request) {
-	limit, _ := strconv.Atoi(r.FormValue("limit"))
-	offset, _ := strconv.Atoi(r.FormValue("offset"))
-
-	if limit > 10 || limit < 1 {
-		limit = 10
-	}
-	if offset < 0 {
-		offset = 0
-	}
-
-	products, err := getProducts(a.DB, offset, limit)
+	products, err := getProducts(a.DB)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
