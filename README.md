@@ -1,6 +1,6 @@
 # Golang API Example by GaryJX
 
-Live example deployed at [https://garyjx-golang-api-example.herokuapp.com/api/](https://garyjx-golang-api-example.herokuapp.com/api/)
+Live example deployed at [https://garyjx-golang-api-example.herokuapp.com/api/](https://garyjx-golang-api-example.herokuapp.com/api/) (first load may be a bit slow due to cold start)
 
 ## Local Development Commands
 
