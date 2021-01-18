@@ -58,14 +58,31 @@ func (a *App) initializeRoutes() {
 	//  200:
 	//    $ref: "#/responses/productsResponse"
 	a.Router.HandleFunc("/api/products", a.getProducts).Methods("GET")
-	a.Router.HandleFunc("/api/product", a.createProduct).Methods("POST")
+
+	// swagger:operation GET /products/{id:[0-9]+} products getProduct
+	// ---
+	// summary: Get a product by id.
+	// description: Return a product provided by the id.
+	// parameters:
+	// - name: id
+	//   in: path
+	//   description: id of the account
+	//   type: string
+	//   required: true
+	// responses:
+	//   "200":
+	//     "$ref": "#/responses/accountRes"
+	//   "400":
+	//     "$ref": "#/responses/badReq"
+	//   "404":
+	//     "$ref": "#/responses/notFoundReq"
 	a.Router.HandleFunc("/api/product/{id:[0-9]+}", a.getProduct).Methods("GET")
+	a.Router.HandleFunc("/api/product", a.createProduct).Methods("POST")
 	a.Router.HandleFunc("/api/product/{id:[0-9]+}", a.updateProduct).Methods("PUT")
 	a.Router.HandleFunc("/api/product/{id:[0-9]+}", a.deleteProduct).Methods("DELETE")
-
-
-	fs := http.FileServer(http.Dir("./swaggerui"))
-	a.Router.PathPrefix("/swaggerui").Handler(http.StripPrefix("/swaggerui/", fs))
+	
+	// Serve Swagger API Docs
+	a.Router.PathPrefix("/api").Handler(http.StripPrefix("/api/", http.FileServer(http.Dir("./api"))))
 }
 
 // Initialize sets up the database connection and router
@@ -99,7 +116,7 @@ func main() {
 
 	// Default port in development
 	if port == "" {
-		port = "8090"
+		port = "8080"
 	}
 
 	a := App{}
