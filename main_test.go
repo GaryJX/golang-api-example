@@ -3,21 +3,35 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/gorilla/mux"
 )
 
 var a App
+var mock sqlmock.Sqlmock
+
+func (a *App) InitializeMock() {
+	var err error
+	a.DB, mock, err = sqlmock.New()
+	
+	if err != nil {
+		log.Fatalf("An error '%s' occurred while opening a mock DB connection.", err);
+	}
+
+	a.Router = mux.NewRouter()
+	a.initializeRoutes()
+}
 
 func TestMain(m *testing.M) {
-	a.Initialize(
-		os.Getenv("DB_USERNAME"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME_TEST"))
-	a.initializeDBTables()
+	a.InitializeMock();
 	code := m.Run()
 	clearTable()
 	os.Exit(code)
@@ -25,6 +39,10 @@ func TestMain(m *testing.M) {
 
 func TestGetProductsEmptyTable(t *testing.T) {
 	clearTable()
+
+	query := "SELECT id, name,  price FROM products"
+	rows := sqlmock.NewRows([]string{"id", "name", "price"})
+	mock.ExpectQuery(query).WillReturnRows(rows)
 
 	req, _ := http.NewRequest("GET", "/api/products", nil)
 	response := executeRequest(req)
@@ -39,7 +57,12 @@ func TestGetProductsEmptyTable(t *testing.T) {
 func TestGetNonExistentProduct(t *testing.T) {
 	clearTable()
 
-	req, _ := http.NewRequest("GET", "/api/product/11", nil)
+	id := 1
+	query := "SELECT name, price FROM products WHERE id=\\$1"
+	rows := sqlmock.NewRows([]string{"id", "name", "price"})
+	mock.ExpectQuery(query).WithArgs(id).WillReturnRows(rows)
+
+	req, _ := http.NewRequest("GET", "/api/product/" + fmt.Sprint(id), nil)
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusNotFound, response.Code)
@@ -54,7 +77,16 @@ func TestGetNonExistentProduct(t *testing.T) {
 func TestCreateProduct(t *testing.T) {
 	clearTable()
 
-	var jsonStr = []byte(`{"name":"test product", "price": 11.22}`)
+	product := Product{
+		ID: 0,
+		Name: "test name",
+		Price: 11.12,
+	}
+	query := "INSERT INTO products(name, price) VALUES(\\$1, \\$2) RETURNING id"
+	rows := sqlmock.NewRows([]string{"id", "name", "price"}).AddRow(product.ID, product.Name, product.Price)
+	mock.ExpectQuery(query).WithArgs(product.Name, product.Price).WillReturnRows(rows)
+
+	var jsonStr = []byte(`{"name":"test name", "price": 11.12}`)
 	req, _ := http.NewRequest("POST", "/api/product/", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 
