@@ -4,6 +4,6 @@ This branch updates **main_test.go** to use a mock SQL database (**sqlmock**) in
 
 View the changes [here](https://github.com/GaryJX/golang-api-example/compare/main..mockDBTest?diff=split).
 
-## Resources:
+## Resources
 
 - [sqlmock documentation](https://github.com/DATA-DOG/go-sqlmock) - For mocking SQL database
