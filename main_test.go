@@ -132,7 +132,6 @@ func TestGetProduct(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, response.Code)
 }
 
-// TODO: Finish this
 func TestUpdateProduct(t *testing.T) {
 	clearTable()
 	addProducts(1)
@@ -159,7 +158,6 @@ func TestUpdateProduct(t *testing.T) {
 	}
 
 	query = "UPDATE products SET name=\\$1, price=\\$2 WHERE id=\\$3"
-	rows = sqlmock.NewRows([]string{"id", "name", "price"}).AddRow(product.ID, product.Name, product.Price)
 	mock.ExpectExec(query).WithArgs(product.Name, product.Price, product.ID).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	var jsonStr = []byte(fmt.Sprintf(`{"name":"%v", "price": %v}`, product.Name, product.Price))
@@ -187,19 +185,34 @@ func TestUpdateProduct(t *testing.T) {
 	}
 }
 
-// TODO: Finish this
 func TestDeleteProduct(t *testing.T) {
 	clearTable()
 	addProducts(1)
+
+	product := Product{
+		ID: 1,
+		Name: "Product 1",
+		Price: 20.0,
+	}
+
+	query := "SELECT name, price FROM products WHERE id=\\$1"
+	rows := sqlmock.NewRows([]string{"id", "name", "price"}).AddRow(product.ID, product.Name, product.Price)
+	mock.ExpectQuery(query).WithArgs(product.ID).WillReturnRows(rows)
 
 	req, _ := http.NewRequest("GET", "/api/product/1", nil)
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
 
+	query = "DELETE FROM products WHERE id=\\$1"
+	mock.ExpectExec(query).WithArgs(product.ID).WillReturnResult(sqlmock.NewResult(1, 1))
+
 	req, _ = http.NewRequest("DELETE", "/api/product/1", nil)
 	response = executeRequest(req)
-
 	checkResponseCode(t, http.StatusOK, response.Code)
+
+	query = "SELECT name, price FROM products WHERE id=\\$1"
+	rows = sqlmock.NewRows([]string{"id", "name", "price"})
+	mock.ExpectQuery(query).WithArgs(product.ID).WillReturnRows(rows)
 
 	req, _ = http.NewRequest("GET", "/api/product/1", nil)
 	response = executeRequest(req)
