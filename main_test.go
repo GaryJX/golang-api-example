@@ -19,6 +19,7 @@ var a App
 var mock sqlmock.Sqlmock
 
 // TODO: Clean up the code here?
+// ! sqlmock Documentation: https://github.com/DATA-DOG/go-sqlmock
 func (a *App) InitializeMock() {
 	var err error
 	a.DB, mock, err = sqlmock.New()
