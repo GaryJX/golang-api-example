@@ -18,8 +18,6 @@ import (
 var a App
 var mock sqlmock.Sqlmock
 
-// TODO: Clean up the code here?
-// ! sqlmock Documentation: https://github.com/DATA-DOG/go-sqlmock
 func (a *App) InitializeMock() {
 	var err error
 	a.DB, mock, err = sqlmock.New()
@@ -42,7 +40,7 @@ func TestMain(m *testing.M) {
 func TestGetProductsEmptyTable(t *testing.T) {
 	clearTable()
 
-	query := "SELECT id, name,  price FROM products"
+	query := "^SELECT[\\s\\S]+FROM products"
 	rows := sqlmock.NewRows([]string{"id", "name", "price"})
 	mock.ExpectQuery(query).WillReturnRows(rows)
 
@@ -60,7 +58,7 @@ func TestGetNonExistentProduct(t *testing.T) {
 	clearTable()
 
 	id := 1
-	query := "SELECT name, price FROM products WHERE id=\\$1"
+	query := "^SELECT[\\s\\S]+FROM products WHERE[\\s\\S]+"
 	rows := sqlmock.NewRows([]string{"id", "name", "price"})
 	mock.ExpectQuery(query).WithArgs(id).WillReturnRows(rows)
 
@@ -84,7 +82,7 @@ func TestCreateProduct(t *testing.T) {
 		Name: "test name",
 		Price: 11.12,
 	}
-	query := "INSERT INTO products\\(name, price\\) VALUES\\(\\$1, \\$2\\) RETURNING id"
+	query := "^INSERT INTO products[\\s\\S]+VALUES[\\s\\S]+"
 	rows := sqlmock.NewRows([]string{"id", "name", "price"}).AddRow(product.ID, product.Name, product.Price)
 	mock.ExpectQuery(query).WithArgs(product.Name, product.Price).WillReturnRows(rows)
 
@@ -123,7 +121,7 @@ func TestGetProduct(t *testing.T) {
 		Price: 20.0,
 	}
 
-	query := "SELECT name, price FROM products WHERE id=\\$1"
+	query := "^SELECT[\\s\\S]+FROM products WHERE[\\s\\S]+"
 	rows := sqlmock.NewRows([]string{"id", "name", "price"}).AddRow(product.ID, product.Name, product.Price)
 	mock.ExpectQuery(query).WithArgs(product.ID).WillReturnRows(rows)
 
@@ -143,7 +141,7 @@ func TestUpdateProduct(t *testing.T) {
 		Price: 20.0,
 	}
 
-	query := "SELECT name, price FROM products WHERE id=\\$1"
+	query := "^SELECT[\\s\\S]+FROM products WHERE[\\s\\S]+"
 	rows := sqlmock.NewRows([]string{"id", "name", "price"}).AddRow(product.ID, product.Name, product.Price)
 	mock.ExpectQuery(query).WithArgs(product.ID).WillReturnRows(rows)
 
@@ -158,7 +156,7 @@ func TestUpdateProduct(t *testing.T) {
 		Price: 20.1,
 	}
 
-	query = "UPDATE products SET name=\\$1, price=\\$2 WHERE id=\\$3"
+	query = "^UPDATE products SET[\\s\\S]+WHERE[\\s\\S]+"
 	mock.ExpectExec(query).WithArgs(product.Name, product.Price, product.ID).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	var jsonStr = []byte(fmt.Sprintf(`{"name":"%v", "price": %v}`, product.Name, product.Price))
@@ -196,7 +194,7 @@ func TestDeleteProduct(t *testing.T) {
 		Price: 20.0,
 	}
 
-	query := "SELECT name, price FROM products WHERE id=\\$1"
+	query := "^SELECT[\\s\\S]+FROM products WHERE[\\s\\S]+"
 	rows := sqlmock.NewRows([]string{"id", "name", "price"}).AddRow(product.ID, product.Name, product.Price)
 	mock.ExpectQuery(query).WithArgs(product.ID).WillReturnRows(rows)
 
@@ -204,14 +202,14 @@ func TestDeleteProduct(t *testing.T) {
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
 
-	query = "DELETE FROM products WHERE id=\\$1"
+	query = "^DELETE FROM products WHERE[\\s\\S]+"
 	mock.ExpectExec(query).WithArgs(product.ID).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	req, _ = http.NewRequest("DELETE", "/api/product/1", nil)
 	response = executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
 
-	query = "SELECT name, price FROM products WHERE id=\\$1"
+	query = "^SELECT[\\s\\S]+FROM products WHERE[\\s\\S]+"
 	rows = sqlmock.NewRows([]string{"id", "name", "price"})
 	mock.ExpectQuery(query).WithArgs(product.ID).WillReturnRows(rows)
 
