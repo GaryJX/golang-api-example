@@ -11,13 +11,13 @@ type Product struct {
 
 func (p *Product) getProduct(db *sql.DB) error {
 	return db.QueryRow("SELECT name, price FROM products WHERE id=$1",
-		p.ID).Scan(&p.Name, &p.Price)
+		p.ID).Scan(&p.ID, &p.Name, &p.Price)
 }
 
 func (p *Product) createProduct(db *sql.DB) error {
 	return db.QueryRow(
 		"INSERT INTO products(name, price) VALUES($1, $2) RETURNING id",
-		p.Name, p.Price).Scan(&p.ID)
+		p.Name, p.Price).Scan(&p.ID, &p.Name, &p.Price)
 }
 
 func (p *Product) updateProduct(db *sql.DB) error {

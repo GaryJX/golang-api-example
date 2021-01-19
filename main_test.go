@@ -18,6 +18,7 @@ import (
 var a App
 var mock sqlmock.Sqlmock
 
+// TODO: Clean up the code here?
 func (a *App) InitializeMock() {
 	var err error
 	a.DB, mock, err = sqlmock.New()
@@ -78,15 +79,15 @@ func TestCreateProduct(t *testing.T) {
 	clearTable()
 
 	product := Product{
-		ID: 0,
+		ID: 1,
 		Name: "test name",
 		Price: 11.12,
 	}
-	query := "INSERT INTO products(name, price) VALUES(\\$1, \\$2) RETURNING id"
+	query := "INSERT INTO products\\(name, price\\) VALUES\\(\\$1, \\$2\\) RETURNING id"
 	rows := sqlmock.NewRows([]string{"id", "name", "price"}).AddRow(product.ID, product.Name, product.Price)
 	mock.ExpectQuery(query).WithArgs(product.Name, product.Price).WillReturnRows(rows)
 
-	var jsonStr = []byte(`{"name":"test name", "price": 11.12}`)
+	var jsonStr = []byte(fmt.Sprintf(`{"name":"%v", "price": %v}`, product.Name, product.Price))
 	req, _ := http.NewRequest("POST", "/api/product/", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -96,11 +97,11 @@ func TestCreateProduct(t *testing.T) {
 	var m map[string]interface{}
 	json.Unmarshal(response.Body.Bytes(), &m)
 
-	if m["name"] != "test product" {
+	if m["name"] != product.Name {
 		t.Errorf("Expected product name to be 'test product'. Got '%v'", m["name"])
 	}
 
-	if m["price"] != 11.22 {
+	if m["price"] != product.Price {
 		t.Errorf("Expected product price to be '11.22'. Got '%v'", m["price"])
 	}
 
@@ -115,22 +116,54 @@ func TestGetProduct(t *testing.T) {
 	clearTable()
 	addProducts(1)
 
+	product := Product{
+		ID: 1,
+		Name: "Product 1",
+		Price: 20.0,
+	}
+
+	query := "SELECT name, price FROM products WHERE id=\\$1"
+	rows := sqlmock.NewRows([]string{"id", "name", "price"}).AddRow(product.ID, product.Name, product.Price)
+	mock.ExpectQuery(query).WithArgs(product.ID).WillReturnRows(rows)
+
 	req, _ := http.NewRequest("GET", "/api/product/1", nil)
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 }
 
+// TODO: Finish this
 func TestUpdateProduct(t *testing.T) {
 	clearTable()
 	addProducts(1)
+
+	product := Product{
+		ID: 1,
+		Name: "Product 1",
+		Price: 20.0,
+	}
+
+	query := "SELECT name, price FROM products WHERE id=\\$1"
+	rows := sqlmock.NewRows([]string{"id", "name", "price"}).AddRow(product.ID, product.Name, product.Price)
+	mock.ExpectQuery(query).WithArgs(product.ID).WillReturnRows(rows)
 
 	req, _ := http.NewRequest("GET", "/api/product/1", nil)
 	response := executeRequest(req)
 	var originalProduct map[string]interface{}
 	json.Unmarshal(response.Body.Bytes(), &originalProduct)
 
-	var jsonStr = []byte(`{"name":"test product - updated name", "price": 11.22}`)
+	product = Product{
+		ID: 1,
+		Name: "New Product 1",
+		Price: 20.1,
+	}
+
+	query = "UPDATE products SET name=\\$1, price=\\$2 WHERE id=\\$3"
+	rows = sqlmock.NewRows([]string{"id", "name", "price"}).AddRow(product.ID, product.Name, product.Price)
+	mock.ExpectExec(query).WithArgs(product.Name, product.Price, product.ID).WillReturnResult(sqlmock.NewResult(1, 1))
+
+	var jsonStr = []byte(fmt.Sprintf(`{"name":"%v", "price": %v}`, product.Name, product.Price))
+
 	req, _ = http.NewRequest("PUT", "/api/product/1", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -154,6 +187,7 @@ func TestUpdateProduct(t *testing.T) {
 	}
 }
 
+// TODO: Finish this
 func TestDeleteProduct(t *testing.T) {
 	clearTable()
 	addProducts(1)
