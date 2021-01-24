@@ -1,53 +1,59 @@
 package main
 
-import "database/sql"
+import (
+	"context"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+)
 
 // Product Model
 type Product struct {
-	ID    int     `json:"id"`
-	Name  string  `json:"name"`
-	Price float64 `json:"price"`
+	ID    primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Name  string             `json:"name,omitempty" bson:"name,omitempty"`
+	Price float64            `json:"price,omitempty" bson:"price,omitempty"`
 }
 
-func (p *Product) getProduct(db *sql.DB) error {
-	return db.QueryRow("SELECT name, price FROM products WHERE id=$1",
-		p.ID).Scan(&p.ID, &p.Name, &p.Price)
-}
-
-func (p *Product) createProduct(db *sql.DB) error {
-	return db.QueryRow(
-		"INSERT INTO products(name, price) VALUES($1, $2) RETURNING id",
-		p.Name, p.Price).Scan(&p.ID, &p.Name, &p.Price)
-}
-
-func (p *Product) updateProduct(db *sql.DB) error {
-	_, err := db.Exec("UPDATE products SET name=$1, price=$2 WHERE id=$3", p.Name, p.Price, p.ID)
+func (p *Product) getProduct(db *mongo.Database) error {
+	err := db.Collection("products").FindOne(context.TODO(), bson.M{"_id": p.ID}).Decode(&p);
 	return err
 }
 
-func (p *Product) deleteProduct(db *sql.DB) error {
-	_, err := db.Exec("DELETE FROM products WHERE id=$1", p.ID)
+func (p *Product) createProduct(db *mongo.Database) (*mongo.InsertOneResult, error) {
+	result, err := db.Collection("products").InsertOne(context.TODO(), p)
+	return result, err
+}
+
+func (p *Product) updateProduct(db *mongo.Database) error {
+	update := bson.M{
+		"$set": bson.M{
+			"name": p.Name,
+			"price": p.Price,
+		},
+	}
+
+	_, err := db.Collection("products").UpdateOne(
+		context.TODO(), 
+		bson.M{"_id": p.ID}, 
+		update,
+	)
 	return err
 }
 
-func getProducts(db *sql.DB) ([]Product, error) {
-	rows, err := db.Query("SELECT id, name,  price FROM products")
+func (p *Product) deleteProduct(db *mongo.Database) error {
+	_, err := db.Collection("products").DeleteOne(context.TODO(), bson.M{"_id": p.ID})
+	return err
+}
+
+func getProducts(db *mongo.Database) ([]Product, error) {
+	cursor, err := db.Collection("products").Find(context.TODO(), bson.M{})
+	var products []Product
 
 	if err != nil {
-		return nil, err
+		return []Product{}, err
 	}
 
-	defer rows.Close()
-
-	products := []Product{}
-
-	for rows.Next() {
-		var p Product
-		if err := rows.Scan(&p.ID, &p.Name, &p.Price); err != nil {
-			return nil, err
-		}
-		products = append(products, p)
-	}
-
-	return products, nil
+	err = cursor.All(context.TODO(), &products)
+	return products, err
 }

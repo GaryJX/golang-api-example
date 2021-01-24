@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// TODO: Update the test logic
 var a App
 var mock sqlmock.Sqlmock
 

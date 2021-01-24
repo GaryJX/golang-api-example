@@ -1,51 +1,21 @@
-// Golang Example API
-//
-// Example Description
-//
-// Terms Of Service:
-//
-//     BasePath: /api
-//     Version: 1.0.0
-//
-//     Consumes:
-//     - application/json
-//
-//     Produces:
-//     - application/json
-//
-// swagger:meta
 package main
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/mux"
-	_ "github.com/joho/godotenv/autoload"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// App contains Router and Database connection
 type App struct {
 	Router *mux.Router
-	DB     *sql.DB
-}
-
-func (a *App) initializeDBTables() {
-	// Initialize products table if it does not already exist
-	var tableCreationQuery = `CREATE TABLE IF NOT EXISTS products
-	(
-		id SERIAL,
-		name TEXT NOT NULL,
-		price NUMERIC(10,2) NOT NULL DEFAULT 0.00,
-		CONSTRAINT products_pkey PRIMARY KEY (id)
-	)`
-
-	if _, err := a.DB.Exec(tableCreationQuery); err != nil {
-		log.Fatal(err)
-	}
+	DB     *mongo.Database
 }
 
 func (a *App) initializeRoutes() {
@@ -73,7 +43,7 @@ func (a *App) initializeRoutes() {
 	//     "$ref": "#/responses/productResponse"
 	//   "404":
 	//     "$ref": "#/responses/notFoundResponse"
-	a.Router.HandleFunc("/api/product/{id:[0-9]+}", a.getProduct).Methods("GET")
+	a.Router.HandleFunc("/api/product/{id}", a.getProduct).Methods("GET")
 
 	// swagger:operation POST /product/ products createProduct
 	// ---
@@ -116,7 +86,7 @@ func (a *App) initializeRoutes() {
 	//     "$ref": "#/responses/badRequestResponse"
 	//   "404":
 	//     "$ref": "#/responses/notFoundResponse"
-	a.Router.HandleFunc("/api/product/{id:[0-9]+}", a.updateProduct).Methods("PUT")
+	a.Router.HandleFunc("/api/product/{id}", a.updateProduct).Methods("PUT")
 
 	// swagger:operation DELETE /product/{id} products deleteProduct
 	// ---
@@ -131,35 +101,30 @@ func (a *App) initializeRoutes() {
 	// responses:
 	//   "200":
 	//     "$ref": "#/responses/okResponse"
-	a.Router.HandleFunc("/api/product/{id:[0-9]+}", a.deleteProduct).Methods("DELETE")
-	
+	a.Router.HandleFunc("/api/product/{id}", a.deleteProduct).Methods("DELETE")
+
 	// Serve Swagger API Docs
 	a.Router.PathPrefix("/api").Handler(http.StripPrefix("/api/", http.FileServer(http.Dir("./api"))))
 }
 
 // Initialize sets up the database connection and router
-func (a *App) Initialize(user, password, dbname string) {
-	// Postgres connection string for Heroku server
-	connectionString := os.Getenv("DATABASE_URL")
-
-	// Postgres connection string for local development
-	if connectionString == "" {
-		connectionString = fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", user, password, dbname)
-	}
-
-	var err error
-	a.DB, err = sql.Open("postgres", connectionString)
+func (a *App) Initialize(connectionURI string) {
+	client, err := mongo.NewClient(options.Client().ApplyURI(connectionURI))
 	if err != nil {
 		log.Fatal(err)
 	}
-	a.initializeDBTables()
-
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	a.DB = client.Database("example-database")
 	a.Router = mux.NewRouter()
 	a.initializeRoutes()
 }
 
-// Run starts up the server
 func (a *App) Run(port string) {
+	fmt.Println("Running server on port" + port)
 	log.Fatal(http.ListenAndServe(port, a.Router))
 }
 
@@ -172,9 +137,6 @@ func main() {
 	}
 
 	a := App{}
-	a.Initialize(
-		os.Getenv("DB_USERNAME"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"))
+	a.Initialize("mongodb://localhost:27017")
 	a.Run(":" + port)
 }
