@@ -16,7 +16,7 @@ type Product struct {
 }
 
 func (p *Product) getProduct(db *mongo.Database) error {
-	err := db.Collection("products").FindOne(context.TODO(), bson.M{"_id": p.ID}).Decode(&p);
+	err := db.Collection("products").FindOne(context.TODO(), bson.M{"_id": p.ID}).Decode(&p)
 	return err
 }
 
@@ -28,14 +28,14 @@ func (p *Product) createProduct(db *mongo.Database) (*mongo.InsertOneResult, err
 func (p *Product) updateProduct(db *mongo.Database) error {
 	update := bson.M{
 		"$set": bson.M{
-			"name": p.Name,
+			"name":  p.Name,
 			"price": p.Price,
 		},
 	}
 
 	_, err := db.Collection("products").UpdateOne(
-		context.TODO(), 
-		bson.M{"_id": p.ID}, 
+		context.TODO(),
+		bson.M{"_id": p.ID},
 		update,
 	)
 	return err

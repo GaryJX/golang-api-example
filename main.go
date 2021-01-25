@@ -1,3 +1,19 @@
+// Golang Example API
+//
+// Example Description
+//
+// Terms Of Service:
+//
+//     BasePath: /api
+//     Version: 1.0.0
+//
+//     Consumes:
+//     - application/json
+//
+//     Produces:
+//     - application/json
+//
+// swagger:meta
 package main
 
 import (

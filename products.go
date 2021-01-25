@@ -59,8 +59,8 @@ func (a *App) createProduct(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	result, err := p.createProduct(a.DB);	
-	if  err != nil {
+	result, err := p.createProduct(a.DB)
+	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
